@@ -1,18 +1,65 @@
 import os
 import json
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 import logging
+import requests
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
 class BlockchainService:
     """Service for interacting with blockchain smart contracts"""
 
+    # Supported networks configuration
+    NETWORKS = {
+        'mainnet': {
+            'name': 'Ethereum Mainnet',
+            'chain_id': 1,
+            'rpc_url': 'https://mainnet.infura.io/v3/YOUR_INFURA_KEY',
+            'block_explorer': 'https://etherscan.io',
+            'opensea': 'https://opensea.io',
+            'native_currency': 'ETH'
+        },
+        'polygon': {
+            'name': 'Polygon Mainnet',
+            'chain_id': 137,
+            'rpc_url': 'https://polygon-rpc.com',
+            'block_explorer': 'https://polygonscan.com',
+            'opensea': 'https://opensea.io',
+            'native_currency': 'MATIC'
+        },
+        'mumbai': {
+            'name': 'Polygon Mumbai Testnet',
+            'chain_id': 80001,
+            'rpc_url': 'https://rpc-mumbai.maticvigil.com',
+            'block_explorer': 'https://mumbai.polygonscan.com',
+            'opensea': 'https://testnets.opensea.io',
+            'native_currency': 'MATIC'
+        },
+        'sepolia': {
+            'name': 'Ethereum Sepolia Testnet',
+            'chain_id': 11155111,
+            'rpc_url': 'https://sepolia.infura.io/v3/YOUR_INFURA_KEY',
+            'block_explorer': 'https://sepolia.etherscan.io',
+            'opensea': 'https://testnets.opensea.io',
+            'native_currency': 'ETH'
+        },
+        'localhost': {
+            'name': 'Local Hardhat Network',
+            'chain_id': 1337,
+            'rpc_url': 'http://127.0.0.1:8545',
+            'block_explorer': None,
+            'opensea': None,
+            'native_currency': 'ETH'
+        }
+    }
+
     def __init__(self):
         self.w3 = None
         self.contracts = {}
         self.account = None
         self.chain_id = None
+        self.current_network = None
         self._initialize_web3()
         self._load_contracts()
 
@@ -25,8 +72,12 @@ class BlockchainService:
             from eth_account import Account
             from eth_account.signers.local import LocalAccount
 
-            # Get RPC URL from environment
-            rpc_url = os.getenv('BLOCKCHAIN_RPC_URL', 'http://127.0.0.1:8545')
+            # Get network from environment or default to localhost
+            network = os.getenv('BLOCKCHAIN_NETWORK', 'localhost')
+            self.current_network = network
+
+            # Get RPC URL from environment or use default for network
+            rpc_url = os.getenv('BLOCKCHAIN_RPC_URL', self.NETWORKS.get(network, {}).get('rpc_url', 'http://127.0.0.1:8545'))
 
             # Initialize Web3
             self.w3 = Web3(Web3.HTTPProvider(rpc_url))
@@ -40,7 +91,7 @@ class BlockchainService:
                 self.w3.client_version
                 # Get chain ID
                 self.chain_id = self.w3.eth.chain_id
-                logger.info(f"Connected to blockchain network with chain ID: {self.chain_id}")
+                logger.info(f"Connected to blockchain network: {network} (Chain ID: {self.chain_id})")
             except Exception as e:
                 logger.warning(f"Failed to connect to blockchain at {rpc_url} - running in offline mode: {str(e)}")
                 self.w3 = None
@@ -370,43 +421,180 @@ class BlockchainService:
             logger.error(f"Transfer ticket failed: {str(e)}")
             raise
 
-    def get_tickets_by_owner(self, owner_address: str) -> list:
-        """Get all tickets owned by an address"""
+    def get_nft_metadata(self, contract_address, token_id):
+        """Get NFT metadata from blockchain"""
         try:
-            # For testing without blockchain connection, return empty list
-            if not self.is_connected() or 'TicketNFT' not in self.contracts:
-                logger.warning("Blockchain not connected or TicketNFT contract not loaded - returning empty ticket list")
-                return []
-            
-            # Call the getTicketsByOwner function on the TicketNFT contract
-            tickets = self.contracts['TicketNFT'].functions.getTicketsByOwner(
-                self.w3.to_checksum_address(owner_address)
-            ).call()
-            
-            # Get metadata for each ticket
-            ticket_details = []
-            for token_id in tickets:
-                try:
-                    metadata = self.contracts['TicketNFT'].functions.getTicketMetadata(token_id).call()
-                    ticket_details.append({
-                        'token_id': token_id,
-                        'event_id': metadata[0],
-                        'event_contract': metadata[1],
-                        'purchaser': metadata[2],
-                        'purchase_date': metadata[3],
-                        'is_used': metadata[4],
-                        'is_active': metadata[5],
-                        'seat_info': metadata[6],
-                        'ticket_type': metadata[7]
-                    })
-                except Exception as e:
-                    logger.warning(f"Failed to get metadata for token {token_id}: {str(e)}")
-            
-            return ticket_details
+            if not self.w3:
+                return {"error": "Blockchain connection not available"}
+
+            # Load contract
+            contract = self._load_contract(contract_address, 'TicketNFT')
+
+            if not contract:
+                return {"error": "Contract not found"}
+
+            # Get token URI
+            token_uri = contract.functions.tokenURI(token_id).call()
+
+            # Get owner
+            owner = contract.functions.ownerOf(token_id).call()
+
+            # Get additional metadata if available
+            try:
+                # Try to get event details if contract supports it
+                event_id = contract.functions.getEventId(token_id).call()
+                ticket_type = contract.functions.getTicketType(token_id).call()
+                is_used = contract.functions.isTicketUsed(token_id).call()
+            except:
+                event_id = None
+                ticket_type = None
+                is_used = None
+
+            metadata = {
+                "token_id": token_id,
+                "token_uri": token_uri,
+                "owner": owner,
+                "contract_address": contract_address,
+                "network": self.current_network,
+                "chain_id": self.chain_id,
+                "event_id": event_id,
+                "ticket_type": ticket_type,
+                "is_used": is_used,
+                "explorer_url": self._get_explorer_url(contract_address, token_id)
+            }
+
+            return metadata
+
         except Exception as e:
-            logger.error(f"Get tickets by owner failed: {str(e)}")
-            # Return empty list instead of raising exception in offline mode
-            return []
+            logger.error(f"Error getting NFT metadata: {str(e)}")
+            return {"error": str(e)}
+
+    def get_nft_transaction_history(self, contract_address, token_id):
+        """Get transaction history for an NFT"""
+        try:
+            if not self.w3:
+                return {"error": "Blockchain connection not available"}
+
+            # Get transfer events for this token
+            contract = self._load_contract(contract_address, 'TicketNFT')
+            if not contract:
+                return {"error": "Contract not found"}
+
+            # Get Transfer events for this token
+            transfer_events = contract.events.Transfer.get_logs(
+                fromBlock=0,
+                toBlock='latest',
+                argument_filters={'tokenId': token_id}
+            )
+
+            transactions = []
+            for event in transfer_events:
+                tx_hash = event.transactionHash.hex()
+                block = self.w3.eth.get_block(event.blockNumber)
+
+                transaction = {
+                    "transaction_hash": tx_hash,
+                    "block_number": event.blockNumber,
+                    "timestamp": block.timestamp,
+                    "from_address": event.args['from'],
+                    "to_address": event.args['to'],
+                    "token_id": event.args['tokenId'],
+                    "explorer_url": self._get_transaction_explorer_url(tx_hash)
+                }
+                transactions.append(transaction)
+
+            return {
+                "token_id": token_id,
+                "contract_address": contract_address,
+                "transactions": transactions
+            }
+
+        except Exception as e:
+            logger.error(f"Error getting NFT transaction history: {str(e)}")
+            return {"error": str(e)}
+
+    def get_user_nfts(self, user_address, contract_address=None):
+        """Get all NFTs owned by a user"""
+        try:
+            if not self.w3:
+                return {"error": "Blockchain connection not available"}
+
+            if contract_address:
+                # Get NFTs from specific contract
+                contract = self._load_contract(contract_address, 'TicketNFT')
+                if not contract:
+                    return {"error": "Contract not found"}
+
+                # Get balance
+                balance = contract.functions.balanceOf(user_address).call()
+
+                nfts = []
+                for i in range(balance):
+                    token_id = contract.functions.tokenOfOwnerByIndex(user_address, i).call()
+                    metadata = self.get_nft_metadata(contract_address, token_id)
+                    if 'error' not in metadata:
+                        nfts.append(metadata)
+
+                return {
+                    "user_address": user_address,
+                    "contract_address": contract_address,
+                    "nfts": nfts
+                }
+            else:
+                # Get NFTs from all known contracts (would need to track deployed contracts)
+                return {"error": "Contract address required for NFT lookup"}
+
+        except Exception as e:
+            logger.error(f"Error getting user NFTs: {str(e)}")
+            return {"error": str(e)}
+
+    def _load_contract(self, contract_address, contract_type):
+        """Load a contract by address and type"""
+        try:
+            if not self.w3:
+                return None
+
+            # Get contract artifact
+            artifacts_dir = os.path.join(os.path.dirname(__file__), '..', 'artifacts', 'contracts')
+            artifact_path = os.path.join(artifacts_dir, f'{contract_type}.sol', f'{contract_type}.json')
+
+            with open(artifact_path, 'r') as f:
+                artifact = json.load(f)
+
+            # Create contract instance
+            contract = self.w3.eth.contract(
+                address=self.w3.to_checksum_address(contract_address),
+                abi=artifact['abi']
+            )
+
+            return contract
+
+        except Exception as e:
+            logger.error(f"Failed to load contract {contract_type} at {contract_address}: {str(e)}")
+            return None
+
+    def _get_explorer_url(self, contract_address, token_id=None):
+        """Get blockchain explorer URL for contract/token"""
+        network_config = self.NETWORKS.get(self.current_network, {})
+        explorer_url = network_config.get('block_explorer', '')
+
+        if not explorer_url:
+            return None
+
+        if token_id is not None:
+            return f"{explorer_url}/token/{contract_address}?a={token_id}"
+        else:
+            return f"{explorer_url}/address/{contract_address}"
+
+    def _get_transaction_explorer_url(self, tx_hash):
+        """Get blockchain explorer URL for transaction"""
+        network_config = self.NETWORKS.get(self.current_network, {})
+        explorer_url = network_config.get('block_explorer', '')
+
+        if not explorer_url:
+            return None
+
+        return f"{explorer_url}/tx/{tx_hash}"
 
 # Global blockchain service instance - lazy initialization
 _blockchain_service = None

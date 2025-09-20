@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from blockchain import blockchain_service
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -231,24 +232,72 @@ def get_user_tickets(address):
                 'offline_mode': True
             }), 200  # Return 200 instead of 500 for better UX
 
-@blockchain_bp.route('/transactions/<tx_hash>', methods=['GET'])
-def get_transaction_status(tx_hash):
-    """Get transaction status and receipt"""
+@blockchain_bp.route('/nft/<contract_address>/<int:token_id>', methods=['GET'])
+def get_nft_metadata(contract_address, token_id):
+    """Get NFT metadata from blockchain"""
     try:
-        receipt = blockchain_service.wait_for_transaction(tx_hash, timeout=30)
+        metadata = blockchain_service.get_nft_metadata(contract_address, token_id)
+
+        if 'error' in metadata:
+            return jsonify(metadata), 404
+
+        return jsonify(metadata), 200
+
+    except Exception as e:
+        logger.error(f"Get NFT metadata failed: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@blockchain_bp.route('/nft/<contract_address>/<int:token_id>/history', methods=['GET'])
+def get_nft_transaction_history(contract_address, token_id):
+    """Get transaction history for an NFT"""
+    try:
+        history = blockchain_service.get_nft_transaction_history(contract_address, token_id)
+
+        if 'error' in history:
+            return jsonify(history), 404
+
+        return jsonify(history), 200
+
+    except Exception as e:
+        logger.error(f"Get NFT transaction history failed: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@blockchain_bp.route('/nft/user/<user_address>', methods=['GET'])
+def get_user_nfts(user_address):
+    """Get all NFTs owned by a user"""
+    try:
+        # Get contract address from environment or query parameter
+        contract_address = request.args.get('contract_address') or os.getenv('TICKETNFT_ADDRESS')
+
+        if not contract_address:
+            return jsonify({'error': 'Contract address required'}), 400
+
+        nfts = blockchain_service.get_user_nfts(user_address, contract_address)
+
+        if 'error' in nfts:
+            return jsonify(nfts), 404
+
+        return jsonify(nfts), 200
+
+    except Exception as e:
+        logger.error(f"Get user NFTs failed: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@blockchain_bp.route('/nft/<contract_address>/<int:token_id>/explorer', methods=['GET'])
+def get_nft_explorer_url(contract_address, token_id):
+    """Get blockchain explorer URL for NFT"""
+    try:
+        explorer_url = blockchain_service._get_explorer_url(contract_address, token_id)
+
+        if not explorer_url:
+            return jsonify({'error': 'Explorer not available for current network'}), 404
 
         return jsonify({
-            'transaction_hash': tx_hash,
-            'status': 'confirmed' if receipt['status'] == 1 else 'failed',
-            'block_number': receipt['blockNumber'],
-            'gas_used': receipt['gasUsed'],
-            'receipt': receipt
+            'explorer_url': explorer_url,
+            'contract_address': contract_address,
+            'token_id': token_id
         }), 200
 
     except Exception as e:
-        logger.error(f"Transaction status check failed: {str(e)}")
-        return jsonify({
-            'transaction_hash': tx_hash,
-            'status': 'pending',
-            'error': str(e)
-        }), 200
+        logger.error(f"Get NFT explorer URL failed: {str(e)}")
+        return jsonify({'error': str(e)}), 500
