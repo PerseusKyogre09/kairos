@@ -1,0 +1,16 @@
+backend/
+requirements.txt
+*.py
+__pycache__/
+*.pyc
+venv/
+env/
+.env
+*.db
+*.sqlite3
+render.yaml
+supabase_setup.sql
+scripts/
+contracts/
+hardhat.config.js
+node_modules/
