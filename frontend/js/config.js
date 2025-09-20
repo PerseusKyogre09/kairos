@@ -1,6 +1,8 @@
 // Configuration and constants
 const CONFIG = {
-    API_BASE_URL: 'http://localhost:5000',
+    API_BASE_URL: window.location.hostname === 'localhost' 
+        ? 'http://localhost:5000' 
+        : 'https://blockevent-backend.onrender.com',
     STORAGE_KEYS: {
         ACCESS_TOKEN: 'blockevent_access_token',
         REFRESH_TOKEN: 'blockevent_refresh_token',

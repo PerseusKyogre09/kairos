@@ -1,48 +1,32 @@
 {
-  "name": "blockchain-unstop",
+  "name": "blockevent",
   "version": "1.0.0",
-  "description": "AI-Powered Blockchain Event Management Platform",
-  "main": "index.js",
+  "description": "Blockchain Event Management Platform",
+  "main": "frontend/index.html",
   "scripts": {
-    "test": "npx hardhat test",
-    "test:event": "npx hardhat test --grep \"EventContract\"",
-    "test:ticket": "npx hardhat test --grep \"TicketNFT\"",
-    "test:gas": "REPORT_GAS=true npx hardhat test",
-    "compile": "npx hardhat compile",
-    "deploy": "npx hardhat run scripts/deploy-all.js",
-    "deploy:local": "npx hardhat run scripts/deploy-all.js --network localhost",
-    "test:contracts": "npx hardhat run scripts/test-contracts.js --network localhost",
-    "integration": "npx hardhat run scripts/integration-test.js",
-    "node": "npx hardhat node",
-    "clean": "npx hardhat clean"
-  },
-  "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.2.3",
-    "@nomiclabs/hardhat-waffle": "^2.0.6",
-    "@openzeppelin/hardhat-upgrades": "^1.28.0",
-    "@types/chai": "^4.3.11",
-    "@types/mocha": "^10.0.6",
-    "@types/node": "^20.10.5",
-    "chai": "^4.3.10",
-    "ethereum-waffle": "^4.0.10",
-    "hardhat": "^2.19.0",
-    "hardhat-gas-reporter": "^1.0.9",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
-  },
-  "dependencies": {
-    "@openzeppelin/contracts": "^4.9.0",
-    "dotenv": "^16.3.1",
-    "ethers": "^5.7.2"
+    "dev": "python -m http.server 3000 --directory frontend",
+    "build": "echo 'Static site - no build needed'",
+    "deploy": "vercel --prod",
+    "deploy-contracts": "npx hardhat run scripts/deploy-all.js --network sepolia"
   },
   "keywords": [
     "blockchain",
-    "ethereum",
-    "smart-contracts",
     "events",
-    "hackathon",
-    "nft"
+    "nft",
+    "tickets",
+    "web3"
   ],
-  "author": "Blockchain Unstop Team",
-  "license": "MIT"
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomiclabs/hardhat-waffle": "^2.0.6",
+    "chai": "^4.3.10",
+    "ethereum-waffle": "^4.0.10",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.19.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.3"
+  }
 }
