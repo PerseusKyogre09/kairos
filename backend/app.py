@@ -6,7 +6,9 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import os
 import logging
-from config import config
+import sys
+sys.path.insert(0, os.path.dirname(__file__))
+import config as config_module
 from models import db
 from auth import auth_bp
 from events import events_bp
@@ -27,12 +29,12 @@ app = Flask(__name__)
 
 # Load configuration
 config_name = os.getenv('FLASK_ENV', 'development')
-app.config.from_object(config[config_name])
+app.config.from_object(config_module.config[config_name])
 
 # Validate production configuration
 if config_name == 'production':
     try:
-        config[config_name].validate_config()
+        config_module.config[config_name].validate_config()
         logger.info("Production configuration validated successfully")
     except ValueError as e:
         logger.error(f"Configuration validation failed: {e}")
