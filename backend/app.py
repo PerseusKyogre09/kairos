@@ -1,10 +1,11 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import os
+import logging
 from config import config
 from models import db
 from auth import auth_bp
@@ -14,12 +15,29 @@ from blockchain_api import blockchain_bp
 from profiles import profiles_bp
 from blockchain import blockchain_service
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(name)s %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 # Initialize Flask app
 app = Flask(__name__)
 
 # Load configuration
 config_name = os.getenv('FLASK_ENV', 'development')
 app.config.from_object(config[config_name])
+
+# Validate production configuration
+if config_name == 'production':
+    try:
+        config[config_name].validate_config()
+        logger.info("Production configuration validated successfully")
+    except ValueError as e:
+        logger.error(f"Configuration validation failed: {e}")
+        # Don't crash, but log the error
+        logger.warning("Continuing with default values - some features may not work")
 
 # CORS Configuration
 CORS(app, origins=app.config['CORS_ORIGINS'])
@@ -28,9 +46,14 @@ CORS(app, origins=app.config['CORS_ORIGINS'])
 jwt = JWTManager(app)
 db.init_app(app)
 
-# Create database tables
+# Create database tables with error handling
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+        logger.info("Database tables created successfully")
+    except Exception as e:
+        logger.error(f"Failed to create database tables: {e}")
+        # Don't crash the app, but log the error
 
 # Initialize rate limiter
 limiter = Limiter(
@@ -72,7 +95,48 @@ def hello():
 
 @app.route('/health')
 def health():
-    return {'status': 'healthy'}
+    """Enhanced health check with database connectivity"""
+    try:
+        # Test database connection
+        db.session.execute('SELECT 1')
+        db.session.commit()
+        
+        return jsonify({
+            'status': 'healthy',
+            'message': 'BlockEvent API is running',
+            'database': 'connected'
+        }), 200
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        return jsonify({
+            'status': 'unhealthy',
+            'message': str(e),
+            'database': 'disconnected'
+        }), 500
+
+# Global error handlers
+@app.errorhandler(500)
+def internal_error(error):
+    logger.error(f"Internal server error: {str(error)}")
+    db.session.rollback()
+    return jsonify({
+        'success': False,
+        'error': 'Internal server error'
+    }), 500
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        'success': False,
+        'error': 'Endpoint not found'
+    }), 404
+
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({
+        'success': False,
+        'error': 'Bad request'
+    }), 400
 
 if __name__ == '__main__':
     import os

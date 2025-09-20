@@ -25,10 +25,26 @@ class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
     FLASK_ENV = 'production'
+    
     # In production, ensure these are set via environment variables
-    SECRET_KEY = os.environ.get('SECRET_KEY')
-    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    SECRET_KEY = os.environ.get('SECRET_KEY') or Config.SECRET_KEY
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or Config.JWT_SECRET_KEY
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or Config.SQLALCHEMY_DATABASE_URI
+    
+    # Production CORS settings
+    frontend_url = os.environ.get('FRONTEND_URL', 'https://blockevent.vercel.app')
+    CORS_ORIGINS = [frontend_url, 'https://*.vercel.app']
+    
+    @classmethod
+    def validate_config(cls):
+        """Validate that required environment variables are set"""
+        required_vars = ['DATABASE_URL', 'JWT_SECRET_KEY']
+        missing_vars = [var for var in required_vars if not os.environ.get(var)]
+        
+        if missing_vars:
+            raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
+        
+        return True
 
 # Configuration mapping
 config = {
