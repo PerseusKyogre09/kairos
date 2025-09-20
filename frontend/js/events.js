@@ -295,6 +295,32 @@ class EventsManager {
         }
     }
 
+    // Check if user already has a ticket for this event
+    async checkUserTicket(eventId) {
+        try {
+            if (!state.wallet.connected) return false;
+            
+            const result = await blockchainAPI.getUserTickets(state.wallet.address);
+            
+            // Handle offline mode gracefully
+            if (result.success) {
+                if (result.data.offline_mode) {
+                    console.log('Blockchain in offline mode - skipping ticket check');
+                    return false; // Allow purchase in offline mode
+                }
+                
+                if (result.data.tickets) {
+                    return result.data.tickets.some(ticket => ticket.event_id === eventId);
+                }
+            }
+            
+            return false;
+        } catch (error) {
+            console.error('Check user ticket error:', error);
+            return false; // Allow purchase if check fails
+        }
+    }
+
     // Purchase ticket
     async purchaseTicket(eventId) {
         try {
@@ -306,6 +332,13 @@ class EventsManager {
 
             if (!state.wallet.connected) {
                 showNotification('Please connect your MetaMask wallet to purchase tickets', 'error');
+                return;
+            }
+
+            // Check if user already has a ticket
+            const hasTicket = await this.checkUserTicket(eventId);
+            if (hasTicket) {
+                showNotification('You already have a ticket for this event', 'info');
                 return;
             }
 
@@ -328,29 +361,39 @@ class EventsManager {
                 console.warn('Organizer has no wallet address, using default test address');
             }
 
-            // Process payment on blockchain
-            const paymentData = {
-                event_id: eventId,
-                amount: event.ticket_price,
-                payer_address: state.wallet.address,
+            // Register for event (which handles payment and NFT minting)
+            const registrationData = {
+                wallet_address: state.wallet.address,
                 organizer_address: organizerAddress
             };
             
-            const result = await blockchainAPI.processPayment(paymentData);
+            const result = await eventAPI.registerForEvent(eventId, registrationData);
             
             if (result.success) {
-                showNotification('Ticket purchase initiated! Check your wallet for confirmation.', 'success');
+                showNotification('Registration successful! Your NFT ticket has been minted.', 'success');
                 
                 // Monitor transaction
                 this.monitorTransaction(result.data.transaction_hash, 'ticket_purchase');
                 
                 return result;
             } else {
-                throw new Error(result.error || 'Failed to process payment');
+                throw new Error(result.error || 'Failed to register for event');
             }
         } catch (error) {
             console.error('Purchase ticket error:', error);
-            showNotification(error.message, 'error');
+            let errorMessage = 'Failed to purchase ticket';
+            
+            if (error.message.includes('User denied')) {
+                errorMessage = 'Transaction was cancelled by user';
+            } else if (error.message.includes('insufficient funds')) {
+                errorMessage = 'Insufficient funds for transaction';
+            } else if (error.message.includes('network')) {
+                errorMessage = 'Network error. Please check your connection.';
+            } else if (error.message.includes('contract')) {
+                errorMessage = 'Smart contract error. Please try again.';
+            }
+            
+            showNotification(errorMessage, 'error');
         } finally {
             showLoading(false);
         }

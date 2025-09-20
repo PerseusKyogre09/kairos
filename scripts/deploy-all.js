@@ -34,8 +34,31 @@ async function main() {
   await paymentProcessor.deployed();
   console.log("PaymentProcessor deployed to:", paymentProcessor.address);
 
+  // Configure contracts to work together
+  console.log("\n4. Configuring contract integrations...");
+  
+  // Set PaymentProcessor address in EventContract
+  const setPaymentProcessorTx = await eventContract.setPaymentProcessor(paymentProcessor.address);
+  await setPaymentProcessorTx.wait();
+  console.log("✓ EventContract configured with PaymentProcessor");
+
+  // Set TicketNFT address in EventContract
+  const setTicketNFTTx = await eventContract.setTicketNFT(ticketNFT.address);
+  await setTicketNFTTx.wait();
+  console.log("✓ EventContract configured with TicketNFT");
+
+  // Set EventContract address in TicketNFT
+  const setEventContractTx = await ticketNFT.setEventContract(eventContract.address);
+  await setEventContractTx.wait();
+  console.log("✓ TicketNFT configured with EventContract");
+
+  // Set PaymentProcessor address in TicketNFT
+  const setPaymentProcessorInNFTTx = await ticketNFT.setPaymentProcessor(paymentProcessor.address);
+  await setPaymentProcessorInNFTTx.wait();
+  console.log("✓ TicketNFT configured with PaymentProcessor");
+
   // Update .env file
-  console.log("\n4. Updating .env file...");
+  console.log("\n5. Updating .env file...");
   const envPath = path.join(__dirname, "..", "backend", ".env");
   let envContent = fs.readFileSync(envPath, "utf8");
 
@@ -57,7 +80,7 @@ async function main() {
   console.log("Updated .env file with contract addresses");
 
   // Test deployment by creating a sample event
-  console.log("\n5. Testing deployment...");
+  console.log("\n6. Testing deployment...");
   const tx = await eventContract.createEvent(
     "Test Event",
     "A test event for deployment verification",

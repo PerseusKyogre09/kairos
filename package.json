@@ -9,9 +9,9 @@
     "test:ticket": "npx hardhat test --grep \"TicketNFT\"",
     "test:gas": "REPORT_GAS=true npx hardhat test",
     "compile": "npx hardhat compile",
-    "deploy": "npx hardhat run scripts/deploy.js",
-    "deploy:ticket": "npx hardhat run scripts/deploy-ticket-nft.js",
-    "deploy:all": "npm run deploy && npm run deploy:ticket",
+    "deploy": "npx hardhat run scripts/deploy-all.js",
+    "deploy:local": "npx hardhat run scripts/deploy-all.js --network localhost",
+    "test:contracts": "npx hardhat run scripts/test-contracts.js --network localhost",
     "integration": "npx hardhat run scripts/integration-test.js",
     "node": "npx hardhat node",
     "clean": "npx hardhat clean"

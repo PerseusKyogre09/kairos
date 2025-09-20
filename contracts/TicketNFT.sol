@@ -86,6 +86,11 @@ contract TicketNFT is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
         _;
     }
 
+    modifier onlyEventContract() {
+        require(msg.sender == eventContract, "Only EventContract can call this function");
+        _;
+    }
+
     constructor() ERC721("EventTicket", "ETKT") {}
 
     /**
@@ -227,6 +232,52 @@ contract TicketNFT is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
         }
 
         return tokenIds;
+    }
+
+    /**
+     * @dev Mint a ticket NFT for event registration (called by EventContract)
+     * @param to The address that will own the ticket
+     * @param eventId The ID of the event
+     * @param purchaser The address that purchased the ticket
+     */
+    function mintTicketForEvent(
+        address to,
+        uint256 eventId,
+        address purchaser
+    ) external onlyEventContract returns (uint256) {
+        require(_validateEvent(eventId), "Invalid or inactive event");
+
+        _tokenIdCounter.increment();
+        uint256 tokenId = _tokenIdCounter.current();
+
+        _safeMint(to, tokenId);
+
+        // Generate metadata URI
+        string memory metadataURI = string(abi.encodePacked(
+            "https://api.eventtickets.com/metadata/",
+            Strings.toString(eventId),
+            "/",
+            Strings.toString(tokenId)
+        ));
+
+        // Generate seat info based on token ID
+        string memory seatInfo = string(abi.encodePacked("Seat-", Strings.toString(tokenId)));
+
+        ticketMetadata[tokenId] = TicketMetadata({
+            eventId: eventId,
+            eventContract: eventContract,
+            purchaser: purchaser,
+            purchaseDate: block.timestamp,
+            isUsed: false,
+            isActive: true,
+            seatInfo: seatInfo,
+            ticketType: "Standard"
+        });
+
+        eventTickets[eventId].push(tokenId);
+
+        emit TicketMinted(tokenId, eventId, to);
+        return tokenId;
     }
 
     /**

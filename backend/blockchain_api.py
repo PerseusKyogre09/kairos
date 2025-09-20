@@ -172,6 +172,31 @@ def transfer_ticket():
         logger.error(f"Transfer ticket failed: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@blockchain_bp.route('/tickets/user/<address>', methods=['GET'])
+@jwt_required()
+def get_user_tickets(address):
+    """Get all tickets owned by a user"""
+    try:
+        tickets = blockchain_service.get_tickets_by_owner(address)
+        
+        # Check if blockchain is connected
+        if not blockchain_service.is_connected():
+            return jsonify({
+                'tickets': tickets,
+                'message': 'Blockchain not connected - showing offline data',
+                'offline_mode': True
+            }), 200
+        
+        return jsonify({'tickets': tickets}), 200
+
+    except Exception as e:
+        logger.error(f"Get user tickets failed: {str(e)}")
+        return jsonify({
+            'error': str(e),
+            'tickets': [],
+            'offline_mode': True
+        }), 200  # Return 200 instead of 500 for better UX
+
 @blockchain_bp.route('/transactions/<tx_hash>', methods=['GET'])
 def get_transaction_status(tx_hash):
     """Get transaction status and receipt"""

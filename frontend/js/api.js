@@ -181,6 +181,11 @@ const eventAPI = {
     // Delete event
     async deleteEvent(eventId) {
         return api.authDelete(`${CONFIG.ENDPOINTS.EVENTS.DELETE}/${eventId}`);
+    },
+
+    // Register for event
+    async registerForEvent(eventId, registrationData) {
+        return api.authPost(`${CONFIG.ENDPOINTS.EVENTS.REGISTER}/${eventId}/register`, registrationData);
     }
 };
 
@@ -252,6 +257,11 @@ const blockchainAPI = {
     // Mint ticket
     async mintTicket(ticketData) {
         return api.authPost(CONFIG.ENDPOINTS.BLOCKCHAIN.TICKETS, ticketData);
+    },
+
+    // Get user tickets
+    async getUserTickets(address) {
+        return api.authGet(`${CONFIG.ENDPOINTS.BLOCKCHAIN.TICKETS}/user/${address}`);
     },
 
     // Get transaction status

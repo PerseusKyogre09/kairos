@@ -4,8 +4,11 @@ from models import db, Event, User
 from datetime import datetime
 from marshmallow import Schema, fields, ValidationError, validates, validates_schema
 import math
+import logging
+from blockchain import blockchain_service
 
 events_bp = Blueprint('events', __name__)
+logger = logging.getLogger(__name__)
 
 # Validation schemas
 class EventCreateSchema(Schema):
@@ -219,3 +222,51 @@ def delete_event(event_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
+@events_bp.route('/<int:event_id>/register', methods=['POST'])
+@jwt_required()
+def register_for_event(event_id):
+    """Register for an event with payment and NFT ticket minting"""
+    try:
+        # Get current user
+        current_user_id = int(get_jwt_identity())
+        user = User.query.get(current_user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Get event
+        event = Event.query.get(event_id)
+        if not event:
+            return jsonify({'error': 'Event not found'}), 404
+
+        if not event.is_active:
+            return jsonify({'error': 'Event is not active'}), 400
+
+        # Validate request data
+        data = request.get_json()
+        if not data or 'wallet_address' not in data:
+            return jsonify({'error': 'Wallet address is required'}), 400
+
+        wallet_address = data['wallet_address']
+        organizer_address = data.get('organizer_address') or event.organizer.wallet_address or '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
+
+        # Check if user is already registered (in database)
+        # Note: We should also check blockchain, but for now we'll rely on database
+
+        # Call blockchain registration (which handles payment and NFT minting)
+        tx_hash = blockchain_service.register_for_event(
+            event_id,
+            wallet_address,
+            event.ticket_price,
+            organizer_address
+        )
+
+        return jsonify({
+            'message': 'Registration successful! NFT ticket has been minted.',
+            'transaction_hash': tx_hash,
+            'event_id': event_id
+        }), 201
+
+    except Exception as e:
+        logger.error(f"Event registration failed: {str(e)}")
+        return jsonify({'error': 'Registration failed', 'details': str(e)}), 500

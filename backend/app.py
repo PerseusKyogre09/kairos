@@ -28,6 +28,10 @@ CORS(app, origins=app.config['CORS_ORIGINS'])
 jwt = JWTManager(app)
 db.init_app(app)
 
+# Create database tables
+with app.app_context():
+    db.create_all()
+
 # Initialize rate limiter
 limiter = Limiter(
     app=app,

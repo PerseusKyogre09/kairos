@@ -37,6 +37,14 @@ async function main() {
   );
   await paymentProcessor.deployed();
   console.log("✅ PaymentProcessor deployed to:", paymentProcessor.address);
+
+  // Set contract addresses
+  console.log("🔗 Setting contract addresses...");
+  await ticketNFT.setEventContract(eventContract.address);
+  await ticketNFT.setPaymentProcessor(paymentProcessor.address);
+  await eventContract.setPaymentProcessor(paymentProcessor.address);
+  await eventContract.setTicketNFT(ticketNFT.address);
+  console.log("✅ Contract addresses set successfully");
   console.log();
 
   // Create an event
@@ -78,30 +86,22 @@ async function main() {
   console.log("   Categories:", eventDetails.categories.join(", "));
   console.log();
 
-  // Test payment processing
-  console.log("💰 Testing payment processing...");
+  // Test event registration with automatic NFT minting
+  console.log("🎫 Testing event registration with automatic NFT minting...");
 
-  // Process payment for participant 1
-  const payment1Tx = await paymentProcessor.connect(owner).testProcessPayment(
-    1, // eventId
-    participant1.address,
-    organizer.address,
-    eventData.ticketPrice,
-    { value: eventData.ticketPrice }
-  );
-  await payment1Tx.wait();
-  console.log("✅ Payment processed for Participant 1");
+  // Register participant 1 (this will process payment and mint NFT automatically)
+  const register1Tx = await eventContract.connect(participant1).registerForEvent(1, {
+    value: eventData.ticketPrice
+  });
+  await register1Tx.wait();
+  console.log("✅ Participant 1 registered and NFT ticket minted");
 
-  // Process payment for participant 2
-  const payment2Tx = await paymentProcessor.connect(owner).testProcessPayment(
-    1, // eventId
-    participant2.address,
-    organizer.address,
-    eventData.ticketPrice,
-    { value: eventData.ticketPrice }
-  );
-  await payment2Tx.wait();
-  console.log("✅ Payment processed for Participant 2");
+  // Register participant 2 (this will process payment and mint NFT automatically)
+  const register2Tx = await eventContract.connect(participant2).registerForEvent(1, {
+    value: eventData.ticketPrice
+  });
+  await register2Tx.wait();
+  console.log("✅ Participant 2 registered and NFT ticket minted");
   console.log();
 
   // Display payment records
@@ -115,36 +115,8 @@ async function main() {
   console.log("   - Platform Fee:", ethers.utils.formatEther(payment1Record.platformFee), "ETH");
   console.log("   - Organizer Share:", ethers.utils.formatEther(payment1Record.organizerShare), "ETH");
 
-  // Mint tickets for participants (after payment)
-  console.log("🎫 Minting tickets for participants...");
-
-  // Mint ticket for participant 1
-  const ticket1Tx = await ticketNFT.mintTicket(
-    participant1.address,
-    1, // eventId
-    eventContract.address, // eventContract
-    "VIP-A1", // seatInfo
-    "VIP", // ticketType
-    "https://example.com/ticket/1" // metadataURI
-  );
-  await ticket1Tx.wait();
-  console.log("✅ Ticket 1 minted for Participant 1");
-
-  // Mint ticket for participant 2
-  const ticket2Tx = await ticketNFT.mintTicket(
-    participant2.address,
-    1, // eventId
-    eventContract.address, // eventContract
-    "VIP-A2", // seatInfo
-    "VIP", // ticketType
-    "https://example.com/ticket/2" // metadataURI
-  );
-  await ticket2Tx.wait();
-  console.log("✅ Ticket 2 minted for Participant 2");
-  console.log();
-
-  // Display ticket ownership
-  console.log("🎫 Ticket Ownership:");
+  // Check automatically minted NFT tickets
+  console.log("🎫 Checking automatically minted NFT tickets...");
   console.log("   Ticket 1 Owner:", await ticketNFT.ownerOf(1));
   console.log("   Ticket 2 Owner:", await ticketNFT.ownerOf(2));
   console.log();

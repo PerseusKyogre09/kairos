@@ -3,6 +3,19 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+
+/**
+ * @title ITicketNFT
+ * @dev Interface for TicketNFT contract
+ */
+interface ITicketNFT {
+    function mintTicketForEvent(
+        address to,
+        uint256 eventId,
+        address purchaser
+    ) external returns (uint256);
+}
 
 /**
  * @title EventContract
@@ -32,6 +45,7 @@ contract EventContract is Ownable, ReentrancyGuard {
 
     // PaymentProcessor integration
     address public paymentProcessor;
+    address public ticketNFT;
 
     // Events
     event EventCreated(uint256 indexed eventId, address indexed organizer, string title);
@@ -185,6 +199,15 @@ contract EventContract is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @dev Set TicketNFT contract address (only owner)
+     * @param _ticketNFT Address of the TicketNFT contract
+     */
+    function setTicketNFT(address _ticketNFT) external onlyOwner {
+        require(_ticketNFT != address(0), "Invalid ticket NFT address");
+        ticketNFT = _ticketNFT;
+    }
+
+    /**
      * @dev Register for an event with payment through PaymentProcessor
      */
     function registerForEvent(uint256 _eventId) external payable eventExists(_eventId) eventIsActive(_eventId) nonReentrant {
@@ -209,6 +232,16 @@ contract EventContract is Ownable, ReentrancyGuard {
             )
         );
         require(success, "Payment processing failed");
+
+        // Mint NFT ticket if TicketNFT contract is set
+        if (ticketNFT != address(0)) {
+            // Mint the ticket NFT
+            ITicketNFT(ticketNFT).mintTicketForEvent(
+                msg.sender,
+                _eventId,
+                msg.sender
+            );
+        }
 
         emit UserRegistered(_eventId, msg.sender);
     }

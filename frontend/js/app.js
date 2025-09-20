@@ -22,6 +22,9 @@ class App {
             // Initialize wallet state
             wallet.updateWalletUI();
             
+            // Check blockchain status
+            this.checkBlockchainStatus();
+            
             // Load initial page
             const hash = window.location.hash.slice(1) || 'home';
             this.showPage(hash);
@@ -197,6 +200,36 @@ class App {
                 errorMessage: 'Failed to update profile'
             }
         );
+    }
+
+    // Check blockchain connection status
+    async checkBlockchainStatus() {
+        try {
+            const result = await blockchainAPI.getStatus();
+            this.updateBlockchainStatusUI(result.success && result.data.connected);
+        } catch (error) {
+            console.error('Blockchain status check failed:', error);
+            this.updateBlockchainStatusUI(false);
+        }
+    }
+
+    // Update blockchain status UI
+    updateBlockchainStatusUI(isConnected) {
+        const statusElement = document.getElementById('blockchain-status');
+        const connectedElement = document.getElementById('blockchain-connected');
+        const offlineElement = document.getElementById('blockchain-offline');
+
+        if (!statusElement) return;
+
+        statusElement.classList.remove('hidden');
+
+        if (isConnected) {
+            connectedElement.classList.remove('hidden');
+            offlineElement.classList.add('hidden');
+        } else {
+            connectedElement.classList.add('hidden');
+            offlineElement.classList.remove('hidden');
+        }
     }
 
     // Page renderers
@@ -611,6 +644,17 @@ class App {
                                 </button>
                             </form>
                         </div>
+
+                        <!-- My Tickets Section -->
+                        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                            <h2 class="text-xl font-semibold mb-4">My NFT Tickets</h2>
+                            <div id="user-tickets-section">
+                                <div class="text-center py-8">
+                                    <i class="fas fa-ticket-alt text-gray-400 text-4xl mb-4"></i>
+                                    <p class="text-gray-600">Loading your tickets...</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Sidebar -->
@@ -678,6 +722,108 @@ class App {
 
         // Load current profile data
         this.loadProfileData();
+        this.loadUserTickets();
+    }
+
+    async loadUserTickets() {
+        if (!state.wallet.connected || !state.wallet.address) {
+            document.getElementById('user-tickets-section').innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-wallet text-gray-400 text-4xl mb-4"></i>
+                    <p class="text-gray-600">Connect your wallet to view your NFT tickets</p>
+                </div>
+            `;
+            return;
+        }
+
+        try {
+            const result = await blockchainAPI.getUserTickets(state.wallet.address);
+            
+            if (result.success) {
+                this.renderUserTickets(result.data.tickets);
+            } else {
+                document.getElementById('user-tickets-section').innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-exclamation-triangle text-yellow-400 text-4xl mb-4"></i>
+                        <p class="text-gray-600">Failed to load tickets</p>
+                        <p class="text-sm text-gray-500">${result.error}</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Load user tickets error:', error);
+            document.getElementById('user-tickets-section').innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-exclamation-triangle text-red-400 text-4xl mb-4"></i>
+                    <p class="text-gray-600">Error loading tickets</p>
+                    <p class="text-sm text-gray-500">${error.message}</p>
+                </div>
+            `;
+        }
+    }
+
+    renderUserTickets(tickets) {
+        const ticketsSection = document.getElementById('user-tickets-section');
+        
+        if (!tickets || tickets.length === 0) {
+            ticketsSection.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-ticket-alt text-gray-400 text-4xl mb-4"></i>
+                    <p class="text-gray-600">No NFT tickets found</p>
+                    <p class="text-sm text-gray-500">Purchase tickets for events to see them here</p>
+                </div>
+            `;
+            return;
+        }
+
+        const ticketsHTML = tickets.map(ticket => `
+            <div class="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4 mb-4">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-ticket-alt text-purple-600 mr-2"></i>
+                            <h4 class="font-semibold text-gray-900">Ticket #${ticket.token_id}</h4>
+                            <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                ticket.is_used ? 'bg-red-100 text-red-800' : 
+                                ticket.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                            }">
+                                ${ticket.is_used ? 'Used' : ticket.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                            <div>
+                                <span class="font-medium">Event ID:</span> ${ticket.event_id}
+                            </div>
+                            <div>
+                                <span class="font-medium">Type:</span> ${ticket.ticket_type}
+                            </div>
+                            <div>
+                                <span class="font-medium">Seat:</span> ${ticket.seat_info}
+                            </div>
+                            <div>
+                                <span class="font-medium">Purchased:</span> ${new Date(ticket.purchase_date * 1000).toLocaleDateString()}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <button onclick="viewTicketDetails(${ticket.token_id})" 
+                                class="text-purple-600 hover:text-purple-800 text-sm font-medium">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        ticketsSection.innerHTML = `
+            <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900">Your NFT Tickets (${tickets.length})</h3>
+                <button onclick="refreshUserTickets()" class="text-sm text-purple-600 hover:text-purple-800">
+                    <i class="fas fa-sync-alt mr-1"></i>Refresh
+                </button>
+            </div>
+            ${ticketsHTML}
+        `;
     }
 
     async loadProfileData() {
@@ -799,6 +945,17 @@ function viewEvent(eventId) {
 function loadEvents() {
     if (window.app) {
         window.app.loadEvents();
+    }
+}
+
+function viewTicketDetails(tokenId) {
+    // TODO: Implement ticket details modal
+    showNotification(`Viewing details for ticket #${tokenId}`, 'info');
+}
+
+function refreshUserTickets() {
+    if (window.app) {
+        window.app.loadUserTickets();
     }
 }
 

@@ -19,7 +19,8 @@ const CONFIG = {
             CREATE: '/events/',
             GET: '/events',
             UPDATE: '/events',
-            DELETE: '/events'
+            DELETE: '/events',
+            REGISTER: '/events'
         },
         PROFILES: {
             ME: '/profiles/me',
