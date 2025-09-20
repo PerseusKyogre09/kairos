@@ -1,9 +1,5 @@
 import os
 import json
-from web3 import Web3
-from web3.middleware import geth_poa_middleware
-from eth_account import Account
-from eth_account.signers.local import LocalAccount
 from typing import Dict, Any, Optional, Tuple
 import logging
 
@@ -23,6 +19,12 @@ class BlockchainService:
     def _initialize_web3(self):
         """Initialize Web3 connection"""
         try:
+            # Lazy import to avoid recursion issues
+            from web3 import Web3
+            from web3.middleware import geth_poa_middleware
+            from eth_account import Account
+            from eth_account.signers.local import LocalAccount
+
             # Get RPC URL from environment
             rpc_url = os.getenv('BLOCKCHAIN_RPC_URL', 'http://127.0.0.1:8545')
 
@@ -35,12 +37,13 @@ class BlockchainService:
             # Test connection
             try:
                 # Simple test - try to get the client version
-                self.w3.clientVersion
+                self.w3.client_version
                 # Get chain ID
                 self.chain_id = self.w3.eth.chain_id
                 logger.info(f"Connected to blockchain network with chain ID: {self.chain_id}")
             except Exception as e:
                 logger.warning(f"Failed to connect to blockchain at {rpc_url} - running in offline mode: {str(e)}")
+                self.w3 = None
                 self.chain_id = None
 
             # Load private key for transaction signing
@@ -51,6 +54,10 @@ class BlockchainService:
             else:
                 logger.warning("No private key provided - read-only mode")
 
+        except ImportError as e:
+            logger.error(f"Failed to import web3 dependencies: {e}")
+            self.w3 = None
+            self.chain_id = None
         except Exception as e:
             logger.warning(f"Failed to initialize Web3: {str(e)} - running in offline mode")
             self.w3 = None
@@ -401,5 +408,15 @@ class BlockchainService:
             # Return empty list instead of raising exception in offline mode
             return []
 
-# Global blockchain service instance
-blockchain_service = BlockchainService()
+# Global blockchain service instance - lazy initialization
+_blockchain_service = None
+
+def get_blockchain_service():
+    """Get the global blockchain service instance, initializing it if needed"""
+    global _blockchain_service
+    if _blockchain_service is None:
+        _blockchain_service = BlockchainService()
+    return _blockchain_service
+
+# For backward compatibility
+blockchain_service = get_blockchain_service()

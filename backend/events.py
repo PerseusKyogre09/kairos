@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, Event, User
+from models import db, Event, User, Ticket
 from datetime import datetime
 from marshmallow import Schema, fields, ValidationError, validates, validates_schema
 import math
@@ -251,7 +251,14 @@ def register_for_event(event_id):
         organizer_address = data.get('organizer_address') or event.organizer.wallet_address or '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
 
         # Check if user is already registered (in database)
-        # Note: We should also check blockchain, but for now we'll rely on database
+        existing_ticket = Ticket.query.filter_by(
+            event_id=event_id, 
+            user_id=current_user_id,
+            wallet_address=wallet_address
+        ).first()
+        
+        if existing_ticket:
+            return jsonify({'error': 'You already have a ticket for this event'}), 400
 
         # Call blockchain registration (which handles payment and NFT minting)
         tx_hash = blockchain_service.register_for_event(
@@ -261,10 +268,36 @@ def register_for_event(event_id):
             organizer_address
         )
 
+        # Create ticket record in database
+        # Generate unique token ID (simple incrementing for demo)
+        last_ticket = Ticket.query.order_by(Ticket.token_id.desc()).first()
+        token_id = (last_ticket.token_id + 1) if last_ticket else 1
+        
+        # Determine ticket type based on price (simple logic for demo)
+        ticket_type = 'VIP' if event.ticket_price >= 0.1 else 'Standard'
+        
+        # Generate seat info
+        seat_number = Ticket.query.filter_by(event_id=event_id).count() + 1
+        seat_info = f"Seat-{seat_number}"
+        
+        ticket = Ticket(
+            token_id=token_id,
+            event_id=event_id,
+            user_id=current_user_id,
+            wallet_address=wallet_address,
+            transaction_hash=tx_hash,
+            seat_info=seat_info,
+            ticket_type=ticket_type
+        )
+        
+        db.session.add(ticket)
+        db.session.commit()
+
         return jsonify({
             'message': 'Registration successful! NFT ticket has been minted.',
             'transaction_hash': tx_hash,
-            'event_id': event_id
+            'event_id': event_id,
+            'ticket': ticket.to_dict()
         }), 201
 
     except Exception as e:

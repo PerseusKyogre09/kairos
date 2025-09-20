@@ -45,6 +45,7 @@ class App {
             register: () => this.renderRegisterPage(),
             events: () => this.renderEventsPage(),
             'create-event': () => this.renderCreateEventPage(),
+            'my-tickets': () => this.renderMyTicketsPage(),
             profile: () => this.renderProfilePage(),
             'my-events': () => this.renderMyEventsPage()
         };
@@ -561,6 +562,52 @@ class App {
                         </button>
                     </div>
                 </form>
+            </div>
+        `;
+    }
+
+    renderMyTicketsPage() {
+        const pageElement = document.getElementById('my-tickets-page');
+        pageElement.innerHTML = `
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Header -->
+                <div class="mb-8 flex justify-between items-center">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">My NFT Tickets</h1>
+                        <p class="text-gray-600">Your collection of event tickets stored as NFTs on the blockchain</p>
+                    </div>
+                    <button onclick="refreshTickets()" 
+                            class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center">
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        Refresh
+                    </button>
+                </div>
+
+                <!-- Wallet Connection Check -->
+                <div id="wallet-check" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 hidden">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 mr-3"></i>
+                        <div>
+                            <h3 class="text-sm font-medium text-yellow-800">Wallet Not Connected</h3>
+                            <p class="text-sm text-yellow-700 mt-1">Connect your wallet to view your NFT tickets</p>
+                        </div>
+                        <button onclick="connectWallet()" 
+                                class="ml-auto bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors">
+                            Connect Wallet
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tickets Container -->
+                <div id="tickets-container">
+                    <!-- Tickets will be loaded here -->
+                </div>
+
+                <!-- Loading State -->
+                <div id="tickets-loading" class="text-center py-12">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+                    <p class="mt-4 text-gray-600">Loading your tickets...</p>
+                </div>
             </div>
         `;
     }

@@ -112,6 +112,8 @@
                         <a href="#" onclick="showPage('create-event')"
                             class="nav-link text-gray-500 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">Create
                             Event</a>
+                        <a href="#" onclick="showPage('my-tickets')"
+                            class="nav-link text-gray-500 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">My Tickets</a>
                         <a href="#" onclick="showPage('profile')"
                             class="nav-link text-gray-500 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">Profile</a>
                     </div>
@@ -272,6 +274,7 @@
         <div id="register-page" class="page hidden"></div>
         <div id="events-page" class="page hidden"></div>
         <div id="create-event-page" class="page hidden"></div>
+        <div id="my-tickets-page" class="page hidden"></div>
         <div id="profile-page" class="page hidden"></div>
         <div id="my-events-page" class="page hidden"></div>
     </main>
@@ -357,10 +360,12 @@
 
     <!-- JavaScript Modules -->
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/wallet.js"></script>
     <script src="js/api.js"></script>
     <script src="js/events.js"></script>
+    <script src="js/tickets.js"></script>
     <script src="js/profile.js"></script>
     <script src="js/agent.js"></script>
     <script src="js/app.js"></script>

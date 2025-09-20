@@ -190,3 +190,75 @@ class Event(db.Model):
 
     def __repr__(self):
         return f'<Event {self.title}>'
+
+
+class Ticket(db.Model):
+    """Ticket model for tracking NFT tickets (offline mode support)"""
+    __tablename__ = 'tickets'
+
+    id = db.Column(db.Integer, primary_key=True)
+    token_id = db.Column(db.Integer, unique=True, nullable=False)
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    wallet_address = db.Column(db.String(42), nullable=False)
+    transaction_hash = db.Column(db.String(66))  # Blockchain transaction hash
+    seat_info = db.Column(db.String(50), default='General Admission')
+    ticket_type = db.Column(db.String(20), default='Standard')  # Standard, VIP, etc.
+    is_used = db.Column(db.Boolean, default=False)
+    is_active = db.Column(db.Boolean, default=True)
+    purchase_date = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    event = db.relationship('Event', backref=db.backref('tickets', lazy=True))
+    user = db.relationship('User', backref=db.backref('tickets', lazy=True))
+
+    def __init__(self, token_id, event_id, user_id, wallet_address, 
+                 transaction_hash=None, seat_info='General Admission', ticket_type='Standard'):
+        self.token_id = token_id
+        self.event_id = event_id
+        self.user_id = user_id
+        self.wallet_address = wallet_address
+        self.transaction_hash = transaction_hash
+        self.seat_info = seat_info
+        self.ticket_type = ticket_type
+
+    def to_dict(self):
+        """Convert ticket object to dictionary for JSON responses"""
+        return {
+            'id': self.id,
+            'token_id': self.token_id,
+            'event_id': self.event_id,
+            'user_id': self.user_id,
+            'wallet_address': self.wallet_address,
+            'transaction_hash': self.transaction_hash,
+            'seat_info': self.seat_info,
+            'ticket_type': self.ticket_type,
+            'is_used': self.is_used,
+            'is_active': self.is_active,
+            'purchase_date': self.purchase_date.isoformat(),
+            'created_at': self.created_at.isoformat(),
+            'event': self.event.to_dict() if self.event else None,
+            'user': {
+                'id': self.user.id,
+                'username': self.user.username,
+                'wallet_address': self.user.wallet_address
+            } if self.user else None
+        }
+
+    def to_blockchain_format(self):
+        """Convert to blockchain-compatible format"""
+        return {
+            'token_id': self.token_id,
+            'event_id': self.event_id,
+            'event_contract': '0x5FbDB2315678afecb367f032d93F642f64180aa3',  # Default contract address
+            'purchaser': self.wallet_address,
+            'purchase_date': int(self.purchase_date.timestamp()),
+            'is_used': self.is_used,
+            'is_active': self.is_active,
+            'seat_info': self.seat_info,
+            'ticket_type': self.ticket_type
+        }
+
+    def __repr__(self):
+        return f'<Ticket {self.token_id} for Event {self.event_id}>'

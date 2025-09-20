@@ -177,25 +177,59 @@ def transfer_ticket():
 def get_user_tickets(address):
     """Get all tickets owned by a user"""
     try:
-        tickets = blockchain_service.get_tickets_by_owner(address)
+        # First try to get tickets from blockchain
+        blockchain_tickets = blockchain_service.get_tickets_by_owner(address)
+        
+        # Also get tickets from database (for offline mode and backup)
+        from models import Ticket
+        user_id = get_jwt_identity()
+        db_tickets = Ticket.query.filter_by(
+            user_id=user_id,
+            wallet_address=address
+        ).all()
+        
+        # Convert database tickets to blockchain format
+        db_tickets_formatted = [ticket.to_blockchain_format() for ticket in db_tickets]
         
         # Check if blockchain is connected
         if not blockchain_service.is_connected():
             return jsonify({
-                'tickets': tickets,
+                'tickets': db_tickets_formatted,
                 'message': 'Blockchain not connected - showing offline data',
                 'offline_mode': True
             }), 200
+        
+        # In online mode, prefer blockchain data but fall back to database if needed
+        tickets = blockchain_tickets if blockchain_tickets else db_tickets_formatted
         
         return jsonify({'tickets': tickets}), 200
 
     except Exception as e:
         logger.error(f"Get user tickets failed: {str(e)}")
-        return jsonify({
-            'error': str(e),
-            'tickets': [],
-            'offline_mode': True
-        }), 200  # Return 200 instead of 500 for better UX
+        
+        # Fallback to database tickets
+        try:
+            from models import Ticket
+            user_id = get_jwt_identity()
+            db_tickets = Ticket.query.filter_by(
+                user_id=user_id,
+                wallet_address=address
+            ).all()
+            
+            db_tickets_formatted = [ticket.to_blockchain_format() for ticket in db_tickets]
+            
+            return jsonify({
+                'tickets': db_tickets_formatted,
+                'message': 'Using offline data due to blockchain connection issues',
+                'offline_mode': True
+            }), 200
+        except Exception as db_error:
+            logger.error(f"Database fallback failed: {str(db_error)}")
+            return jsonify({
+                'error': str(e),
+                'tickets': [],
+                'offline_mode': True
+            }), 200  # Return 200 instead of 500 for better UX
 
 @blockchain_bp.route('/transactions/<tx_hash>', methods=['GET'])
 def get_transaction_status(tx_hash):
