@@ -14,5 +14,19 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
+      - key: BLOCKCHAIN_NETWORK
+        sync: false
+      - key: BLOCKCHAIN_RPC_URL
+        sync: false
+      - key: INFURA_PROJECT_ID
+        sync: false
+      - key: BLOCKCHAIN_PRIVATE_KEY
+        sync: false
+      - key: EVENTCONTRACT_ADDRESS
+        sync: false
+      - key: PAYMENTPROCESSOR_ADDRESS
+        sync: false
+      - key: TICKETNFT_ADDRESS
+        sync: false
     healthCheckPath: /health
     plan: free

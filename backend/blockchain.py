@@ -76,8 +76,26 @@ class BlockchainService:
             network = os.getenv('BLOCKCHAIN_NETWORK', 'localhost')
             self.current_network = network
 
-            # Get RPC URL from environment or use default for network
-            rpc_url = os.getenv('BLOCKCHAIN_RPC_URL', self.NETWORKS.get(network, {}).get('rpc_url', 'http://127.0.0.1:8545'))
+            # Get RPC URL - check multiple sources
+            rpc_url = os.getenv('BLOCKCHAIN_RPC_URL')
+
+            if not rpc_url:
+                # Try to construct RPC URL from INFURA_PROJECT_ID
+                infura_key = os.getenv('INFURA_PROJECT_ID')
+                if infura_key:
+                    network_urls = {
+                        'mainnet': f'https://mainnet.infura.io/v3/{infura_key}',
+                        'sepolia': f'https://sepolia.infura.io/v3/{infura_key}',
+                        'polygon': f'https://polygon-mainnet.infura.io/v3/{infura_key}',
+                        'mumbai': f'https://polygon-mumbai.infura.io/v3/{infura_key}'
+                    }
+                    rpc_url = network_urls.get(network)
+
+            # Fall back to default network RPC URL
+            if not rpc_url:
+                rpc_url = self.NETWORKS.get(network, {}).get('rpc_url', 'http://127.0.0.1:8545')
+
+            logger.info(f"Using RPC URL for {network}: {rpc_url.replace(infura_key or '', '[REDACTED]') if infura_key else rpc_url}")
 
             # Initialize Web3
             self.w3 = Web3(Web3.HTTPProvider(rpc_url))
