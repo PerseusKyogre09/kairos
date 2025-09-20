@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Events - BlockEvent</title>
+</head>
+<body>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="mb-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">My Events</h1>
+                <p class="text-gray-600">Events you've created and are managing</p>
+            </div>
+            <button onclick="showPage('create-event')" 
+                    class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center">
+                <i class="fas fa-plus mr-2"></i>
+                Create Event
+            </button>
+        </div>
+
+        <!-- Events Tabs -->
+        <div class="mb-6">
+            <nav class="flex space-x-8" aria-label="Tabs">
+                <button onclick="filterMyEvents('all')" 
+                        class="my-events-tab active whitespace-nowrap py-2 px-1 border-b-2 border-primary-500 font-medium text-sm text-primary-600">
+                    All Events
+                </button>
+                <button onclick="filterMyEvents('upcoming')" 
+                        class="my-events-tab whitespace-nowrap py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    Upcoming
+                </button>
+                <button onclick="filterMyEvents('past')" 
+                        class="my-events-tab whitespace-nowrap py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    Past
+                </button>
+                <button onclick="filterMyEvents('draft')" 
+                        class="my-events-tab whitespace-nowrap py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    Drafts
+                </button>
+            </nav>
+        </div>
+
+        <!-- Events Grid -->
+        <div id="my-events-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Events will be loaded here -->
+        </div>
+
+        <!-- Loading State -->
+        <div id="my-events-loading" class="text-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+            <p class="mt-4 text-gray-600">Loading your events...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="my-events-empty" class="hidden text-center py-12">
+            <i class="fas fa-calendar-plus text-gray-400 text-6xl mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">No events found</h3>
+            <p class="text-gray-600 mb-4">You haven't created any events yet</p>
+            <button onclick="showPage('create-event')" class="btn-gradient text-white px-6 py-2 rounded-lg">
+                Create Your First Event
+            </button>
+        </div>
+    </div>
+</body>
+</html>

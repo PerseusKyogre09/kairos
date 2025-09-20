@@ -9,9 +9,6 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <!-- Custom Tailwind Configuration -->
     <script>
         tailwind.config = {
@@ -42,36 +39,57 @@
                             800: '#075985',
                             900: '#0c4a6e',
                         }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'pulse-slow': 'pulse 3s infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(10px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
                     }
                 }
             }
         }
     </script>
 
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        .btn-gradient {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
+
         .card-hover {
             transition: all 0.3s ease;
         }
+
         .card-hover:hover {
             transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         }
-        .line-clamp-3 {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
         }
     </style>
 </head>
@@ -87,53 +105,19 @@
                         <span class="text-xl font-bold text-gray-900">BlockEvent</span>
                     </div>
                     <div class="hidden md:ml-6 md:flex md:space-x-8">
-                        <a href="dashboard.html" class="text-gray-500 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">Dashboard</a>
-                        <a href="events.html" class="text-primary-600 border-b-2 border-primary-600 px-3 py-2 text-sm font-medium">Events</a>
-                        <a href="tickets.html" class="text-gray-500 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">My Tickets</a>
+                        <a href="index.html" class="text-gray-500 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">Home</a>
+                        <a href="events.html" class="text-gray-900 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">Events</a>
+                        <a href="create-event.html" class="text-gray-500 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">Create Event</a>
+                        <a href="my-tickets.html" class="text-gray-500 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">My Tickets</a>
                         <a href="profile.html" class="text-gray-500 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">Profile</a>
                     </div>
                 </div>
 
                 <div class="flex items-center space-x-4">
-                    <!-- Blockchain Status -->
-                    <div id="blockchain-status" class="hidden md:flex items-center">
-                        <div id="blockchain-connected" class="hidden bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-                            <i class="fas fa-link mr-1"></i>Blockchain
-                        </div>
-                        <div id="blockchain-offline" class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
-                            <i class="fas fa-unlink mr-1"></i>Offline Mode
-                        </div>
-                    </div>
-
-                    <!-- Wallet Connection -->
-                    <div id="wallet-section">
-                        <button id="connect-wallet-btn" onclick="connectWallet()"
-                            class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105">
-                            <i class="fas fa-wallet mr-2"></i>Connect Wallet
-                        </button>
-                        <div id="wallet-connected" class="hidden flex items-center space-x-2">
-                            <div class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
-                                <i class="fas fa-check-circle mr-1"></i>Connected
-                            </div>
-                            <span id="wallet-address" class="text-sm text-gray-600"></span>
-                            <button onclick="disconnectWallet()" class="text-gray-400 hover:text-gray-600">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- User Menu -->
-                    <div id="user-menu" class="relative">
-                        <button onclick="toggleUserMenu()" class="flex items-center space-x-2 text-gray-700 hover:text-primary-600">
-                            <img id="user-avatar" src="https://via.placeholder.com/32" alt="User" class="w-8 h-8 rounded-full">
-                            <span id="user-name">User</span>
-                            <i class="fas fa-chevron-down text-xs"></i>
-                        </button>
-                        <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                            <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                            <a href="tickets.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Tickets</a>
-                            <a href="#" onclick="logout()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
-                        </div>
+                    <!-- Auth buttons -->
+                    <div class="flex space-x-2">
+                        <a href="login.html" class="text-gray-500 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">Login</a>
+                        <a href="register.html" class="btn-gradient text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105">Sign Up</a>
                     </div>
                 </div>
             </div>
@@ -141,81 +125,151 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-4">Discover Events</h1>
-            <p class="text-gray-600">Find and join amazing blockchain events</p>
-        </div>
+    <main class="min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-4">Discover Events</h1>
+                <p class="text-gray-600">Find and join amazing blockchain events</p>
+            </div>
 
-        <!-- Search and Filters -->
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <div class="flex flex-col md:flex-row gap-4">
-                <div class="flex-1">
-                    <input type="text" id="event-search" placeholder="Search events..." 
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                </div>
-                <div class="flex gap-2">
-                    <select id="event-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                        <option value="">All Events</option>
-                        <option value="upcoming">Upcoming</option>
-                        <option value="past">Past</option>
-                    </select>
-                    <button onclick="searchEvents()" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
-                        <i class="fas fa-search"></i>
-                    </button>
-                    <a href="create-event.html" class="px-4 py-2 btn-gradient text-white rounded-lg hover:opacity-90 flex items-center">
-                        <i class="fas fa-plus mr-2"></i>Create Event
-                    </a>
+            <!-- Search and Filters -->
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <input type="text" id="event-search" placeholder="Search events..." 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div class="flex gap-2">
+                        <select id="event-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <option value="">All Events</option>
+                            <option value="upcoming">Upcoming</option>
+                            <option value="past">Past</option>
+                        </select>
+                        <button onclick="loadEvents()" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Events Grid -->
-        <div id="events-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <!-- Events will be loaded here -->
-        </div>
+            <!-- Events Grid -->
+            <div id="events-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Sample Event Cards -->
+                <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 card-hover">
+                    <div class="mb-4">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Blockchain Summit 2024</h3>
+                        <p class="text-gray-600 text-sm">Join industry leaders for the biggest blockchain event of the year</p>
+                    </div>
+                    
+                    <div class="space-y-2 mb-4">
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-calendar mr-2"></i>
+                            March 15, 2024
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-map-marker-alt mr-2"></i>
+                            San Francisco, CA
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-ticket-alt mr-2"></i>
+                            0.05 ETH
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-users mr-2"></i>
+                            500 attendees
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">by admin</span>
+                        <button class="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-primary-700">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-        <!-- Pagination -->
-        <div id="events-pagination" class="flex justify-center">
-            <!-- Pagination will be rendered here -->
-        </div>
+            <!-- Loading State -->
+            <div id="events-loading" class="hidden text-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+                <p class="mt-4 text-gray-600">Loading events...</p>
+            </div>
 
-        <!-- Loading State -->
-        <div id="events-loading" class="text-center py-12">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-            <p class="mt-4 text-gray-600">Loading events...</p>
-        </div>
-
-        <!-- Empty State -->
-        <div id="events-empty" class="hidden text-center py-12">
-            <i class="fas fa-calendar-times text-gray-400 text-6xl mb-4"></i>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">No events found</h3>
-            <p class="text-gray-600 mb-4">Try adjusting your search criteria</p>
-            <a href="create-event.html" class="btn-gradient text-white px-6 py-2 rounded-lg inline-block">
-                Create Event
-            </a>
+            <!-- Empty State -->
+            <div id="events-empty" class="hidden text-center py-12">
+                <i class="fas fa-calendar-times text-gray-400 text-6xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">No events found</h3>
+                <p class="text-gray-600 mb-4">Try adjusting your search criteria</p>
+                <a href="create-event.html" class="btn-gradient text-white px-6 py-2 rounded-lg inline-block">
+                    Create Event
+                </a>
+            </div>
         </div>
     </main>
 
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
-            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
-            <span class="text-gray-700">Loading...</span>
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-cube text-primary-400 text-2xl mr-2"></i>
+                        <span class="text-xl font-bold">BlockEvent</span>
+                    </div>
+                    <p class="text-gray-400">Revolutionizing event management with blockchain technology</p>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Platform</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="events.html" class="hover:text-white transition-colors">Events</a></li>
+                        <li><a href="create-event.html" class="hover:text-white transition-colors">Create Event</a></li>
+                        <li><a href="my-tickets.html" class="hover:text-white transition-colors">NFT Tickets</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Support</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Help Center</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Documentation</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact Us</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Connect</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-discord text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-github text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 BlockEvent. All rights reserved.</p>
+            </div>
         </div>
-    </div>
+    </footer>
 
-    <!-- Notification Container -->
-    <div id="notification-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
-
-    <!-- JavaScript Modules -->
+    <!-- JavaScript -->
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/wallet.js"></script>
     <script src="js/api.js"></script>
-    <script src="js/events.js"></script>
-
+    <script>
+        // Simple events loading for standalone page
+        function loadEvents() {
+            console.log('Loading events...');
+            // Add your event loading logic here
+        }
+    </script>
 </body>
+
 </html>
