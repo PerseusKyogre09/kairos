@@ -2,27 +2,16 @@ services:
   - type: web
     name: blockevent-backend
     env: python
-    buildCommand: pip install -r backend/requirements.txt && chmod +x start.sh
-    startCommand: ./start.sh
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --preload backend.app:app
     envVars:
       - key: FLASK_ENV
         value: production
       - key: DATABASE_URL
         sync: false
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_KEY
-        sync: false
       - key: JWT_SECRET_KEY
-        generateValue: true
-      - key: BLOCKCHAIN_NETWORK
-        value: sepolia
-      - key: INFURA_PROJECT_ID
-        sync: false
-      - key: PRIVATE_KEY
-        sync: false
-      - key: OPENAI_API_KEY
         sync: false
       - key: FRONTEND_URL
         sync: false
     healthCheckPath: /health
+    plan: free
