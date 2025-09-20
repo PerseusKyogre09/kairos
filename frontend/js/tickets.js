@@ -441,6 +441,9 @@ class TicketsManager {
 // Initialize tickets manager
 const ticketsManager = new TicketsManager();
 
+// Make it globally accessible
+window.ticketsManager = ticketsManager;
+
 // Global functions
 async function refreshTickets() {
     await ticketsManager.refreshTickets();

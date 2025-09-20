@@ -64,7 +64,7 @@ class App {
 
         // Handle browser back/forward
         window.addEventListener('popstate', (event) => {
-            const page = event.state?.page || 'home';
+            const page = window.location.hash.slice(1) || 'home';
             this.showPage(page, false);
         });
 
@@ -115,8 +115,11 @@ class App {
 
         // Update URL and history
         if (updateHistory) {
-            const url = pageName === 'home' ? '/' : `#${pageName}`;
-            history.pushState({ page: pageName }, '', url);
+            if (pageName === 'home') {
+                window.location.hash = '';
+            } else {
+                window.location.hash = pageName;
+            }
         }
 
         this.currentPage = pageName;
@@ -128,8 +131,8 @@ class App {
     updateNavigation(activePage) {
         // Update navigation active states
         document.querySelectorAll('.nav-link').forEach(link => {
-            const onclick = link.getAttribute('onclick');
-            if (onclick && onclick.includes(activePage)) {
+            const dataPage = link.getAttribute('data-page');
+            if (dataPage && dataPage === activePage) {
                 link.classList.remove('text-gray-500');
                 link.classList.add('text-gray-900');
             } else {
@@ -610,6 +613,11 @@ class App {
                 </div>
             </div>
         `;
+        
+        // Load user tickets
+        if (window.ticketsManager) {
+            window.ticketsManager.loadUserTickets();
+        }
     }
 
     renderProfilePage() {

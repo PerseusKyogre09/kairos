@@ -105,16 +105,16 @@
                         <span class="text-xl font-bold text-gray-900">BlockEvent</span>
                     </div>
                     <div class="hidden md:ml-6 md:flex md:space-x-8">
-                        <a href="#" onclick="showPage('home')"
+                        <a href="#" data-page="home"
                             class="nav-link text-gray-900 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">Home</a>
-                        <a href="#" onclick="showPage('events')"
+                        <a href="#" data-page="events"
                             class="nav-link text-gray-500 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">Events</a>
-                        <a href="#" onclick="showPage('create-event')"
+                        <a href="#" data-page="create-event"
                             class="nav-link text-gray-500 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">Create
                             Event</a>
-                        <a href="#" onclick="showPage('my-tickets')"
+                        <a href="#" data-page="my-tickets"
                             class="nav-link text-gray-500 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">My Tickets</a>
-                        <a href="#" onclick="showPage('profile')"
+                        <a href="#" data-page="profile"
                             class="nav-link text-gray-500 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">Profile</a>
                     </div>
                 </div>
@@ -150,9 +150,9 @@
                     <!-- Authentication -->
                     <div id="auth-section">
                         <div id="auth-buttons" class="flex space-x-2">
-                            <button onclick="showPage('login')"
+                            <button data-page="login"
                                 class="text-gray-500 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">Login</button>
-                            <button onclick="showPage('register')"
+                            <button data-page="register"
                                 class="btn-gradient text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105">Sign
                                 Up</button>
                         </div>
@@ -166,9 +166,9 @@
                             </button>
                             <div id="user-dropdown"
                                 class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                                <a href="#" onclick="showPage('profile')"
+                                <a href="#" data-page="profile"
                                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                                <a href="#" onclick="showPage('my-events')"
+                                <a href="#" data-page="my-events"
                                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Events</a>
                                 <a href="#" onclick="logout()"
                                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
@@ -187,13 +187,15 @@
         <!-- Mobile menu -->
         <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
             <div class="px-2 pt-2 pb-3 space-y-1">
-                <a href="#" onclick="showPage('home')"
+                <a href="#" data-page="home"
                     class="block px-3 py-2 text-base font-medium text-gray-900 hover:text-primary-600">Home</a>
-                <a href="#" onclick="showPage('events')"
+                <a href="#" data-page="events"
                     class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-primary-600">Events</a>
-                <a href="#" onclick="showPage('create-event')"
+                <a href="#" data-page="create-event"
                     class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-primary-600">Create Event</a>
-                <a href="#" onclick="showPage('profile')"
+                <a href="#" data-page="my-tickets"
+                    class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-primary-600">My Tickets</a>
+                <a href="#" data-page="profile"
                     class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-primary-600">Profile</a>
             </div>
         </div>
@@ -213,11 +215,11 @@
                         Create, manage, and attend events on the blockchain with NFT tickets and smart contracts
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
-                        <button onclick="showPage('events')"
+                        <button data-page="events"
                             class="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
                             Explore Events
                         </button>
-                        <button onclick="showPage('create-event')"
+                        <button data-page="create-event"
                             class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-primary-600 transition-colors">
                             Create Event
                         </button>
