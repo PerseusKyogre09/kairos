@@ -8,7 +8,22 @@ class Config:
     """Base configuration class"""
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-key-change-in-production')
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///app.db')
+    # Database configuration - Supabase by default, SQLite as fallback
+    DATABASE_URL = os.getenv('DATABASE_URL')
+    SUPABASE_URL = os.getenv('SUPABASE_URL')
+    SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY')
+
+    if DATABASE_URL:
+        # Use direct DATABASE_URL (works with Supabase, Heroku, etc.)
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL
+    elif SUPABASE_URL:
+        # Construct PostgreSQL URI from Supabase credentials
+        # Note: You'll need to get the direct PostgreSQL connection string from Supabase dashboard
+        # This is for reference - you'll set DATABASE_URL directly
+        SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///app.db')
+    else:
+        # SQLite fallback for local development
+        SQLALCHEMY_DATABASE_URI = 'sqlite:///app.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('JWT_ACCESS_TOKEN_EXPIRE_MINUTES', 15))
     JWT_REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv('JWT_REFRESH_TOKEN_EXPIRE_DAYS', 30))
