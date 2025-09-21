@@ -1,8 +1,5 @@
-# The Submission Template for GenIgnite Pre-Hackathon IPEC
-
+# Blockchain-Powered Event Ticketing System
 ![image](image.png)
-## Blockchain-Powered Event Ticketing System
-
 ---
 
 ## Problem Statement Description
