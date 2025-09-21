@@ -46,7 +46,7 @@ yarn-error.log*
 
 # Hardhat
 cache/
-artifacts/
+# artifacts/  # Commented out to include in deployment
 
 # IDE
 .vscode/
