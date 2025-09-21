@@ -4,6 +4,10 @@ from typing import Dict, Any, Optional, Tuple, List
 import logging
 import requests
 from urllib.parse import urlparse
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +72,7 @@ class BlockchainService:
         try:
             # Lazy import to avoid recursion issues
             from web3 import Web3
-            from web3.middleware import geth_poa_middleware
+            from web3.middleware.proof_of_authority import ExtraDataToPOAMiddleware
             from eth_account import Account
             from eth_account.signers.local import LocalAccount
 
@@ -78,10 +82,10 @@ class BlockchainService:
 
             # Get RPC URL - check multiple sources
             rpc_url = os.getenv('BLOCKCHAIN_RPC_URL')
+            infura_key = os.getenv('INFURA_PROJECT_ID')
 
             if not rpc_url:
                 # Try to construct RPC URL from INFURA_PROJECT_ID
-                infura_key = os.getenv('INFURA_PROJECT_ID')
                 if infura_key:
                     network_urls = {
                         'mainnet': f'https://mainnet.infura.io/v3/{infura_key}',
@@ -101,7 +105,7 @@ class BlockchainService:
             self.w3 = Web3(Web3.HTTPProvider(rpc_url))
 
             # Add PoA middleware for networks like Polygon, BSC
-            self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+            self.w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
 
             # Test connection
             try:
