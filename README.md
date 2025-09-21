@@ -1,24 +1,23 @@
 # The Submission Template for GenIgnite Pre-Hackathon IPEC
 
-## 1. Problem Statement Name
-
-Blockchain-Powered Event Ticketing System
+![image](image.png)
+## Blockchain-Powered Event Ticketing System
 
 ---
 
-## 2. Problem Statement Description
+## Problem Statement Description
 
 Traditional event ticketing systems suffer from fraud, scalping, lack of transparency, and inefficient distribution. Our solution leverages blockchain technology to create secure, transparent, and decentralized event ticketing, ensuring fair access and eliminating intermediaries while providing immutable records of ticket ownership and transfers.
 
 ---
 
-## 3. Project Overview
+## Project Overview
 
 Kairos is a comprehensive blockchain-based event management platform that revolutionizes ticketing through smart contracts. It enables event organizers to create NFT-based tickets, provides secure payment processing, and offers a seamless user experience for event discovery, ticket purchasing, and management. The platform ensures ticket authenticity, prevents fraud, and provides real-time analytics for event organizers.
 
 ---
 
-## 4. Architecture
+## Architecture
 
 - **Frontend:** HTML/CSS/JavaScript dashboard for event organizers, attendees, and administrators
 - **Backend:** Flask server for authentication, event management, and blockchain integration
@@ -29,7 +28,7 @@ Kairos is a comprehensive blockchain-based event management platform that revolu
 
 ---
 
-## 5. Tech Stack
+## Tech Stack
 
 - HTML5, CSS3, JavaScript (ES6+)
 - Flask, Python 3.12.7
@@ -43,13 +42,13 @@ Kairos is a comprehensive blockchain-based event management platform that revolu
 
 ---
 
-## 6. Team Name
+## Team Name
 
 HackShack
 
 ---
 
-## 7. Team Members & Details
+## Team Members & Details
 
 | Name                | Role                | Email                       | LinkedIn                        | College Name                   |
 |---------------------|---------------------|-----------------------------|---------------------------------|--------------------------------|
@@ -61,7 +60,7 @@ HackShack
 
 ---
 
-## 8. Additional Links
+## Additional Links
 
 - [GitHub Repository](https://github.com/PerseusKyogre09/kairos)
 - [Project Demo/Video](#)
@@ -70,7 +69,7 @@ HackShack
 
 ---
 
-## 9. Instructions for Evaluators
+## Instructions for Evaluators
 
 ### Prerequisites
 - Node.js 18+ and npm
@@ -117,17 +116,6 @@ HackShack
 - Payment processing with smart contracts
 - User authentication and profiles
 - AI-powered event recommendations
-
----
-
-## Submission Guidelines
-
-- **Copy this template exactly.** Do not change section names or order.
-- **Fill in every section clearly and professionally.**
-- **Include accurate contact details for all team members.**
-- **Provide working links to demos and repositories.**
-- **Add architectural diagrams if possible (as images or markdown).**
-- **Use professional, concise language.**
 
 ---
 
